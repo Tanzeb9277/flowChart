@@ -1,0 +1,632 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      /* Defs */
+      @property --angle-1 {
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: -75deg;
+      }
+
+      @property --angle-2 {
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: -45deg;
+      }
+
+      :root {
+        --global--size: clamp(2rem, 4vw, 5rem);
+        --anim--hover-time: 400ms;
+        --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f5f5f5;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image 0.3s ease;
+      }
+      .container {
+        width: 600px;
+        min-height: 500px;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+      .question {
+        display: none;
+        margin-bottom: 20px;
+        flex-grow: 1;
+      }
+      .question.active {
+        display: flex;
+        flex-direction: column;
+      }
+      .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: auto;
+      }
+      button {
+        margin: 0;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      button:hover {
+        background-color: #e0e0e0;
+        transform: translateY(-1px);
+      }
+      #finalSection {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+      }
+      input[type="text"] {
+        padding: 10px;
+        width: 100%;
+        max-width: 300px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      .info {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        white-space: pre-line;
+      }
+      #backButton {
+        background-color: #e9ecef;
+        border: 1px solid #dee2e6;
+        margin-bottom: 15px;
+        color: #495057;
+      }
+      #backButton:hover {
+        background-color: #dee2e6;
+      }
+      h2 {
+        color: #2c3e50;
+        margin-bottom: 25px;
+        text-align: center;
+      }
+      h3 {
+        color: #34495e;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      #restart {
+        background-color: #6c757d;
+        color: white;
+        margin: 20px auto;
+        display: block;
+      }
+      #restart:hover {
+        background-color: #5a6268;
+      }
+      .submit-btn {
+        background-color: #28a745;
+        color: white;
+      }
+      .submit-btn:hover {
+        background-color: #218838;
+      }
+      .wallpaper-controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .wallpaper-input {
+        width: 0;
+        opacity: 0;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 999vw;
+        background: rgba(255, 255, 255, 0.9);
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        position: absolute;
+        right: 50px;
+        pointer-events: none;
+      }
+      .wallpaper-input.active {
+        width: 200px;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .wallpaper-input:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+      .button-wrap {
+        position: relative;
+        z-index: 2;
+        border-radius: 999vw;
+        background: transparent;
+        pointer-events: none;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+      }
+      .button-wrap.expanded {
+        transform: scale(1.1);
+      }
+      .button-wrap.expanded .wallpaper-btn {
+        transform: scale(0.9);
+      }
+      /* Button Shadow Container */
+      .button-shadow {
+        --shadow-cuttoff-fix: 2em;
+        position: absolute;
+        width: calc(100% + var(--shadow-cuttoff-fix));
+        height: calc(100% + var(--shadow-cuttoff-fix));
+        top: calc(0% - var(--shadow-cuttoff-fix) / 2);
+        left: calc(0% - var(--shadow-cuttoff-fix) / 2);
+        filter: blur(clamp(2px, 0.125em, 12px));
+        -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+        -moz-filter: blur(clamp(2px, 0.125em, 12px));
+        -ms-filter: blur(clamp(2px, 0.125em, 12px));
+        overflow: visible;
+        pointer-events: none;
+      }
+      /* Shadow */
+      .button-shadow::after {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        border-radius: 999vw;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+        width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+        height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+        top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+        left: calc(var(--shadow-cuttoff-fix) - 0.875em);
+        padding: 0.125em;
+        box-sizing: border-box;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        overflow: visible;
+        opacity: 1;
+      }
+      .wallpaper-btn {
+        --border-width: clamp(1px, 0.0625em, 4px);
+        all: unset;
+        cursor: pointer;
+        position: relative;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        pointer-events: auto;
+        z-index: 3;
+        background: linear-gradient(
+          -75deg,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.05)
+        );
+        border-radius: 999vw;
+        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+          inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+          0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+          0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+          0 0 0 0 rgba(255, 255, 255, 1);
+        backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+        -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+        -moz-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+        -ms-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .wallpaper-btn:hover {
+        transform: scale(0.975);
+        backdrop-filter: blur(0.01em);
+        -webkit-backdrop-filter: blur(0.01em);
+        -moz-backdrop-filter: blur(0.01em);
+        -ms-backdrop-filter: blur(0.01em);
+        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+          inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+          0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+          0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
+          0 0 0 0 rgba(255, 255, 255, 1);
+      }
+      .wallpaper-btn img {
+        width: 20px;
+        height: 20px;
+        opacity: 0.7;
+        filter: drop-shadow(0 0.125em 0.125em rgba(0, 0, 0, 0.1));
+      }
+      .wallpaper-btn::after {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        border-radius: 999vw;
+        width: calc(100% + var(--border-width));
+        height: calc(100% + var(--border-width));
+        top: calc(0% - var(--border-width) / 2);
+        left: calc(0% - var(--border-width) / 2);
+        padding: var(--border-width);
+        box-sizing: border-box;
+        background: conic-gradient(
+            from var(--angle-1) at 50% 50%,
+            rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0) 5% 40%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(0, 0, 0, 0) 60% 95%,
+            rgba(0, 0, 0, 0.5)
+          ),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease),
+          --angle-1 500ms ease;
+        box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+      }
+      .wallpaper-btn:hover::after {
+        --angle-1: -125deg;
+      }
+      .wallpaper-btn:active::after {
+        --angle-1: -75deg;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Severity Evaluation Decision Flow</h2>
+      <label><strong>Task:</strong></label
+      ><br />
+      <input type="text" id="Task" placeholder="Enter task ID" /><br /><br />
+      <button id="backButton" style="display: none" onclick="goBack()">⬅️ Back</button>
+      <div id="questions"></div>
+      <div id="finalSection" style="display: none">
+        <h3 id="finalResult"></h3>
+        <button class="submit-btn" onclick="submitAnswer()">✅ Submit</button>
+      </div>
+      <button id="restart" style="display: none" onclick="startFlow()">
+        🔁 Restart
+      </button>
+    </div>
+    <div class="wallpaper-controls">
+      <input type="text" class="wallpaper-input" placeholder="Paste image URL here" />
+      <div class="button-wrap">
+        <div class="button-shadow"></div>
+        <button class="wallpaper-btn" onclick="toggleWallpaperInput()">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iZmVhdGhlciBmZWF0aGVyLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIj48L3BvbHlsaW5lPjwvc3ZnPg==" alt="Wallpaper" />
+        </button>
+      </div>
+    </div>
+    <script>
+      let finalAnswer = ""
+      let questionHistory = []
+      const flow = [
+        {
+          id: "q1",
+          text: "Is there a claim(s) in the target statement?",
+          options: [
+            { label: "Yes", next: "q2" },
+            { label: "No", result: "✅ Mark \"Accurate\"" },
+          ],
+        },
+        {
+          id: "q2",
+          text: "Do you understand the claim(s) in the target statement?",
+          options: [
+            
+            {
+              label: "No - Formatting Issue",
+              result: '⚠️ Mark "Formatting Issue"',
+              info: `Use this when:\n\n• Disorganized structure makes it unreadable\n• Visual clutter or markdown/rendering errors block understanding\n• Sentence merges unrelated info without clear context`,
+            },
+            {
+              label: "No - Impossible to Assess",
+              result: '❓ Mark "Impossible to Assess"',
+              info: `Use this when:\n\n• Context is excessively ambiguous\n• Dynamic data or unavailable document/image\n• Paywalled or missing link required to assess the claim`,
+            },
+            { label: "Yes", next: "q3" },
+          ],
+        },
+        {
+          id: "q3",
+          text: "Is the target statement reasonable according to common sense?",
+          options: [
+            { label: "Yes", result: '✅ Mark "Accurate"' },
+            { label: "No", next: "q4" },
+          ],
+        },
+        {
+          id: "q4",
+          text: "Is there something that is not accurate?",
+          options: [
+            { label: "Yes", next: "q5" },
+            { label: "No", result: '✅ Mark "Accurate"' },
+          ],
+        },
+        {
+          id: "q5",
+          text: "Is it unsupported?",
+          options: [
+            { label: "Yes", next: "q6" },
+            { label: "No / I Don't Know", next: "q7" },
+          ],
+        },
+        {
+          id: "q6",
+          text: "Is it likely accurate based on your research (IE Sources outdated but all seem to agree and support the TS or many less than reputable sources seem to agree and support the TS)?",
+          options: [
+            {
+              label: "Yes",
+              result: "🟡 Low/Low+ Severity (depends on relation to intent)",
+            },
+            { label: "No", next: "q7" },
+          ],
+        },
+        {
+          id: "q7",
+          text: "Is it inaccurate or disputed?",
+          options: [
+            { label: "Yes", next: "q8" },
+            { label: "No", result: '✅ Mark "Accurate' },
+          ],
+        },
+        {
+          id: "q8",
+          text: "Does the claim(s) fall into primary intent or secondary intent?",
+          options: [
+            { label: "Primary Intent", next: "q9" },
+            { label: "Secondary Intent or Neither", next: "q13" },
+          ],
+        },
+        {
+          id: "q9",
+          text: 'Is it the direct answer to the users question (I.E. Claim says "Yes" when the answer is actually "No", etc)?',
+          options: [
+            { label: "Yes", result: "🔴 High Severity" },
+            { label: "No", next: "q10" },
+          ],
+        },
+        {
+          id: "q10",
+          text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or impact the user in a YMYL topic (Your Money Your Life)?",
+          options: [
+            { label: "Yes", result: "🔴 High Severity" },
+            { label: "No", next: "q11" },
+          ],
+        },
+        {
+          id: "q11",
+          text: "Does it mislead the user (would believing the information lead to user inconvenience or annoyance)?",
+          options: [
+            { label: "Yes", result: "🟠 Medium+ Severity" },
+            { label: "No", next: "q12" },
+          ],
+        },
+        {
+          id: "q12",
+          text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
+          options: [
+            { label: "Yes", result: "🟡 Low+ Severity" },
+            { label: "No", result: "🟠 Medium Severity" },
+          ],
+        },
+        {
+          id: "q13",
+          text: "Does it belong in the response (make sense for the topic of the query)?",
+          options: [
+            { label: "Yes", next: "q14" },
+            {
+              label: "No",
+              result: "🟡 Low Severity",
+              info: "Per Google, anything that is inaccurate but completely unrelated to the user's query should be low severity",
+            },
+          ],
+        },
+        {
+          id: "q14",
+          text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or does it impact the user in a YMYL topic (Your Money Your Life)?",
+          options: [
+            { label: "Yes", result: "🔴 High Severity" },
+            { label: "No", next: "q15" },
+          ],
+        },
+        {
+          id: "q15",
+          text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
+          options: [
+            { label: "Yes", result: "🟡 Low Severity" },
+            { label: "No", result: "🟡 Low+ Severity" },
+          ],
+        },
+      ]
+      function startFlow() {
+        finalAnswer = ""
+        questionHistory = []
+        const container = document.getElementById("questions")
+        container.innerHTML = ""
+        document.getElementById("restart").style.display = "none"
+        document.getElementById("finalSection").style.display = "none"
+        document.getElementById("backButton").style.display = "none"
+        const showQuestion = (id) => {
+          container.innerHTML = ""
+          const q = flow.find((f) => f.id === id)
+          if (!q) return
+          const div = document.createElement("div")
+          div.className = "question active"
+          const h = document.createElement("h3")
+          h.textContent = q.text
+          div.appendChild(h)
+          if (q.options) {
+            const optionsContainer = document.createElement("div")
+            optionsContainer.className = "options-container"
+            q.options.forEach((opt) => {
+              const btn = document.createElement("button")
+              btn.textContent = opt.label
+              btn.onclick = () => {
+                if (opt.result) {
+                  finalAnswer = opt.result
+                  container.innerHTML = ""
+                  document.getElementById("finalResult").innerHTML =
+                    `<strong>Final Answer:</strong> ${finalAnswer}`
+                  document.getElementById("finalSection").style.display =
+                    "block"
+                  document.getElementById("restart").style.display = "block"
+                  document.getElementById("backButton").style.display = "none"
+                } else if (opt.next) {
+                  questionHistory.push(id)
+                  showQuestion(opt.next)
+                } else if (opt.restart) {
+                  startFlow()
+                }
+              }
+              optionsContainer.appendChild(btn)
+              if (opt.info) {
+                const infoDiv = document.createElement("div")
+                infoDiv.className = "info"
+                infoDiv.textContent = opt.info
+                optionsContainer.appendChild(infoDiv)
+              }
+            })
+            div.appendChild(optionsContainer)
+          }
+          container.appendChild(div)
+          document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none"
+        }
+        showQuestion("q1")
+      }
+      function submitAnswer() {
+        const taskId = document.getElementById("Task").value.trim()
+        if (!taskId) {
+          alert("⚠️ Please enter a Task before submitting.")
+          return
+        }
+        google.script.run
+          .withSuccessHandler(() => {
+            alert(`✅ Submitted!\nTask: ${taskId}\nAnswer: ${finalAnswer}`)
+          })
+          .withFailureHandler((err) => {
+            console.error("❌ Script Error:", err)
+            alert("❌ Submission failed.")
+          })
+          .submitLog(taskId, finalAnswer)
+      }
+      function goBack() {
+        if (questionHistory.length > 0) {
+          const previousQuestion = questionHistory.pop()
+          const container = document.getElementById("questions")
+          container.innerHTML = ""
+          document.getElementById("finalSection").style.display = "none"
+          document.getElementById("restart").style.display = "none"
+          const showQuestion = (id) => {
+            container.innerHTML = ""
+            const q = flow.find((f) => f.id === id)
+            if (!q) return
+            const div = document.createElement("div")
+            div.className = "question active"
+            const h = document.createElement("h3")
+            h.textContent = q.text
+            div.appendChild(h)
+            if (q.options) {
+              q.options.forEach((opt) => {
+                const btn = document.createElement("button")
+                btn.textContent = opt.label
+                btn.onclick = () => {
+                  if (opt.result) {
+                    finalAnswer = opt.result
+                    container.innerHTML = ""
+                    document.getElementById("finalResult").innerHTML =
+                      `<strong>Final Answer:</strong> ${finalAnswer}`
+                    document.getElementById("finalSection").style.display =
+                      "block"
+                    document.getElementById("restart").style.display = "block"
+                    document.getElementById("backButton").style.display = "none"
+                  } else if (opt.next) {
+                    questionHistory.push(id)
+                    showQuestion(opt.next)
+                  } else if (opt.restart) {
+                    startFlow()
+                  }
+                }
+                div.appendChild(btn)
+                if (opt.info) {
+                  const infoDiv = document.createElement("div")
+                  infoDiv.className = "info"
+                  infoDiv.textContent = opt.info
+                  div.appendChild(infoDiv)
+                }
+              })
+            }
+            container.appendChild(div)
+            document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none"
+          }
+          showQuestion(previousQuestion)
+        }
+      }
+      function toggleWallpaperInput() {
+        const input = document.querySelector('.wallpaper-input');
+        const buttonWrap = document.querySelector('.button-wrap');
+        const isActive = input.classList.contains('active');
+        
+        if (!isActive) {
+          input.classList.add('active');
+          buttonWrap.classList.add('expanded');
+          setTimeout(() => input.focus(), 300);
+        } else {
+          input.classList.remove('active');
+          buttonWrap.classList.remove('expanded');
+        }
+      }
+
+      document.querySelector('.wallpaper-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const url = this.value.trim();
+          if (url) {
+            document.body.style.backgroundImage = `url(${url})`;
+            this.value = '';
+            this.classList.remove('active');
+            document.querySelector('.button-wrap').classList.remove('expanded');
+          }
+        }
+      });
+
+      // Close input when clicking outside
+      document.addEventListener('click', function(e) {
+        const input = document.querySelector('.wallpaper-input');
+        const button = document.querySelector('.wallpaper-btn');
+        if (!input.contains(e.target) && !button.contains(e.target) && input.classList.contains('active')) {
+          input.classList.remove('active');
+          document.querySelector('.button-wrap').classList.remove('expanded');
+        }
+      });
+
+      window.onload = startFlow
+    </script>
+  </body>
+</html>
