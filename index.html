@@ -2,631 +2,778 @@
 <html>
   <head>
     <base target="_top" />
+    <title>Severity Evaluation Decision Flow</title>
     <style>
       /* Defs */
       @property --angle-1 {
-        syntax: "<angle>";
-        inherits: false;
-        initial-value: -75deg;
+      syntax: "<angle>";
+      inherits: false;
+      initial-value: -75deg;
       }
 
       @property --angle-2 {
-        syntax: "<angle>";
-        inherits: false;
-        initial-value: -45deg;
+      syntax: "<angle>";
+      inherits: false;
+      initial-value: -45deg;
       }
 
       :root {
-        --global--size: clamp(2rem, 4vw, 5rem);
-        --anim--hover-time: 400ms;
-        --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
+      --global--size: clamp(2rem, 4vw, 5rem);
+      --anim--hover-time: 400ms;
+      --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
       }
 
       body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #f5f5f5;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: background-image 0.3s ease;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f5f5;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 0.3s ease;
       }
       .container {
-        width: 600px;
-        min-height: 500px;
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
+      width: 600px;
+      min-height: 500px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
       }
       .question {
-        display: none;
-        margin-bottom: 20px;
-        flex-grow: 1;
+      display: none;
+      margin-bottom: 20px;
+      flex-grow: 1;
       }
       .question.active {
-        display: flex;
-        flex-direction: column;
+      display: flex;
+      flex-direction: column;
       }
       .options-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
       }
       button {
-        margin: 0;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        background-color: #f0f0f0;
-        color: #333;
+      margin: 0;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background-color: #f0f0f0;
+      color: #333;
       }
       button:hover {
-        background-color: #e0e0e0;
-        transform: translateY(-1px);
+      background-color: #e0e0e0;
+      transform: translateY(-1px);
       }
       #finalSection {
-        margin-top: 30px;
-        padding: 20px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      text-align: center;
       }
       input[type="text"] {
-        padding: 10px;
-        width: 100%;
-        max-width: 300px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 14px;
-        margin-bottom: 10px;
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 10px;
       }
       .info {
-        font-size: 0.9em;
-        color: #666;
-        margin-top: 10px;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 6px;
-        white-space: pre-line;
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      white-space: pre-line;
       }
       #backButton {
-        background-color: #e9ecef;
-        border: 1px solid #dee2e6;
-        margin-bottom: 15px;
-        color: #495057;
+      background-color: #e9ecef;
+      border: 1px solid #dee2e6;
+      margin-bottom: 15px;
+      color: #495057;
       }
       #backButton:hover {
-        background-color: #dee2e6;
+      background-color: #dee2e6;
       }
       h2 {
-        color: #2c3e50;
-        margin-bottom: 25px;
-        text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+      text-align: center;
       }
       h3 {
-        color: #34495e;
-        margin-bottom: 20px;
-        text-align: center;
+      color: #34495e;
+      margin-bottom: 20px;
+      text-align: center;
       }
       #restart {
-        background-color: #6c757d;
-        color: white;
-        margin: 20px auto;
-        display: block;
+      background-color: #6c757d;
+      color: white;
+      margin: 20px auto;
+      display: block;
       }
       #restart:hover {
-        background-color: #5a6268;
+      background-color: #5a6268;
       }
       .submit-btn {
-        background-color: #28a745;
-        color: white;
+      background-color: #28a745;
+      color: white;
       }
       .submit-btn:hover {
-        background-color: #218838;
+      background-color: #218838;
       }
       .wallpaper-controls {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
       }
       .wallpaper-input {
-        width: 0;
-        opacity: 0;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 999vw;
-        background: rgba(255, 255, 255, 0.9);
-        transition: all var(--anim--hover-time) var(--anim--hover-ease);
-        position: absolute;
-        right: 50px;
-        pointer-events: none;
+      width: 0;
+      opacity: 0;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 999vw;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all var(--anim--hover-time) var(--anim--hover-ease);
+      position: absolute;
+      right: 50px;
+      pointer-events: none;
       }
       .wallpaper-input.active {
-        width: 200px;
-        opacity: 1;
-        pointer-events: auto;
+      width: 200px;
+      opacity: 1;
+      pointer-events: auto;
       }
       .wallpaper-input:focus {
-        outline: none;
-        border-color: rgba(255, 255, 255, 0.5);
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
       }
       .button-wrap {
-        position: relative;
-        z-index: 2;
-        border-radius: 999vw;
-        background: transparent;
-        pointer-events: none;
-        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+      position: relative;
+      z-index: 2;
+      border-radius: 999vw;
+      background: transparent;
+      pointer-events: none;
+      transition: all var(--anim--hover-time) var(--anim--hover-ease);
       }
       .button-wrap.expanded {
-        transform: scale(1.1);
+      transform: scale(1.1);
       }
       .button-wrap.expanded .wallpaper-btn {
-        transform: scale(0.9);
+      transform: scale(0.9);
       }
       /* Button Shadow Container */
       .button-shadow {
-        --shadow-cuttoff-fix: 2em;
-        position: absolute;
-        width: calc(100% + var(--shadow-cuttoff-fix));
-        height: calc(100% + var(--shadow-cuttoff-fix));
-        top: calc(0% - var(--shadow-cuttoff-fix) / 2);
-        left: calc(0% - var(--shadow-cuttoff-fix) / 2);
-        filter: blur(clamp(2px, 0.125em, 12px));
-        -webkit-filter: blur(clamp(2px, 0.125em, 12px));
-        -moz-filter: blur(clamp(2px, 0.125em, 12px));
-        -ms-filter: blur(clamp(2px, 0.125em, 12px));
-        overflow: visible;
-        pointer-events: none;
+      --shadow-cuttoff-fix: 2em;
+      position: absolute;
+      width: calc(100% + var(--shadow-cuttoff-fix));
+      height: calc(100% + var(--shadow-cuttoff-fix));
+      top: calc(0% - var(--shadow-cuttoff-fix) / 2);
+      left: calc(0% - var(--shadow-cuttoff-fix) / 2);
+      filter: blur(clamp(2px, 0.125em, 12px));
+      -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+      -moz-filter: blur(clamp(2px, 0.125em, 12px));
+      -ms-filter: blur(clamp(2px, 0.125em, 12px));
+      overflow: visible;
+      pointer-events: none;
       }
       /* Shadow */
       .button-shadow::after {
-        content: "";
-        position: absolute;
-        z-index: 0;
-        inset: 0;
-        border-radius: 999vw;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
-        width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
-        height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
-        top: calc(var(--shadow-cuttoff-fix) - 0.5em);
-        left: calc(var(--shadow-cuttoff-fix) - 0.875em);
-        padding: 0.125em;
-        box-sizing: border-box;
-        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        mask-composite: exclude;
-        transition: all var(--anim--hover-time) var(--anim--hover-ease);
-        overflow: visible;
-        opacity: 1;
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      border-radius: 999vw;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+      width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+      height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+      top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+      left: calc(var(--shadow-cuttoff-fix) - 0.875em);
+      padding: 0.125em;
+      box-sizing: border-box;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      transition: all var(--anim--hover-time) var(--anim--hover-ease);
+      overflow: visible;
+      opacity: 1;
       }
       .wallpaper-btn {
-        --border-width: clamp(1px, 0.0625em, 4px);
-        all: unset;
-        cursor: pointer;
-        position: relative;
-        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        pointer-events: auto;
-        z-index: 3;
-        background: linear-gradient(
-          -75deg,
-          rgba(255, 255, 255, 0.05),
-          rgba(255, 255, 255, 0.2),
-          rgba(255, 255, 255, 0.05)
-        );
-        border-radius: 999vw;
-        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-          inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
-          0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
-          0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
-          0 0 0 0 rgba(255, 255, 255, 1);
-        backdrop-filter: blur(clamp(1px, 0.125em, 4px));
-        -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
-        -moz-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
-        -ms-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
-        transition: all var(--anim--hover-time) var(--anim--hover-ease);
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      --border-width: clamp(1px, 0.0625em, 4px);
+      all: unset;
+      cursor: pointer;
+      position: relative;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      pointer-events: auto;
+      z-index: 3;
+      background: linear-gradient(
+      -75deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.05)
+      );
+      border-radius: 999vw;
+      box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+      inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+      0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+      0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+      0 0 0 0 rgba(255, 255, 255, 1);
+      backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+      -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+      -moz-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+      -ms-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+      transition: all var(--anim--hover-time) var(--anim--hover-ease);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       }
       .wallpaper-btn:hover {
-        transform: scale(0.975);
-        backdrop-filter: blur(0.01em);
-        -webkit-backdrop-filter: blur(0.01em);
-        -moz-backdrop-filter: blur(0.01em);
-        -ms-backdrop-filter: blur(0.01em);
-        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-          inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
-          0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
-          0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
-          0 0 0 0 rgba(255, 255, 255, 1);
+      transform: scale(0.975);
+      backdrop-filter: blur(0.01em);
+      -webkit-backdrop-filter: blur(0.01em);
+      -moz-backdrop-filter: blur(0.01em);
+      -ms-backdrop-filter: blur(0.01em);
+      box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+      inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+      0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+      0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
+      0 0 0 0 rgba(255, 255, 255, 1);
       }
       .wallpaper-btn img {
-        width: 20px;
-        height: 20px;
-        opacity: 0.7;
-        filter: drop-shadow(0 0.125em 0.125em rgba(0, 0, 0, 0.1));
+      width: 20px;
+      height: 20px;
+      opacity: 0.7;
+      filter: drop-shadow(0 0.125em 0.125em rgba(0, 0, 0, 0.1));
       }
       .wallpaper-btn::after {
-        content: "";
-        position: absolute;
-        z-index: 1;
-        inset: 0;
-        border-radius: 999vw;
-        width: calc(100% + var(--border-width));
-        height: calc(100% + var(--border-width));
-        top: calc(0% - var(--border-width) / 2);
-        left: calc(0% - var(--border-width) / 2);
-        padding: var(--border-width);
-        box-sizing: border-box;
-        background: conic-gradient(
-            from var(--angle-1) at 50% 50%,
-            rgba(0, 0, 0, 0.5),
-            rgba(0, 0, 0, 0) 5% 40%,
-            rgba(0, 0, 0, 0.5) 50%,
-            rgba(0, 0, 0, 0) 60% 95%,
-            rgba(0, 0, 0, 0.5)
-          ),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
-        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        mask-composite: exclude;
-        transition: all var(--anim--hover-time) var(--anim--hover-ease),
-          --angle-1 500ms ease;
-        box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+      content: "";
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      border-radius: 999vw;
+      width: calc(100% + var(--border-width));
+      height: calc(100% + var(--border-width));
+      top: calc(0% - var(--border-width) / 2);
+      left: calc(0% - var(--border-width) / 2);
+      padding: var(--border-width);
+      box-sizing: border-box;
+      background: conic-gradient(
+      from var(--angle-1) at 50% 50%,
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0) 5% 40%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0) 60% 95%,
+      rgba(0, 0, 0, 0.5)
+      ),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      transition: all var(--anim--hover-time) var(--anim--hover-ease),
+      --angle-1 500ms ease;
+      box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
       }
       .wallpaper-btn:hover::after {
-        --angle-1: -125deg;
+      --angle-1: -125deg;
       }
       .wallpaper-btn:active::after {
-        --angle-1: -75deg;
+      --angle-1: -75deg;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <h2>Severity Evaluation Decision Flow</h2>
-      <label><strong>Task:</strong></label
-      ><br />
-      <input type="text" id="Task" placeholder="Enter task ID" /><br /><br />
-      <button id="backButton" style="display: none" onclick="goBack()">⬅️ Back</button>
+      <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div style="flex: 1;">
+          <label><strong>Email:</strong></label><br />
+          <input type="email" id="Email" placeholder="Enter your email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;" />
+        </div>
+        <div style="flex: 1;">
+          <label><strong>Task:</strong></label><br />
+          <input type="text" id="Task" placeholder="Enter task ID" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;" />
+        </div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label><strong>Evaluation Type:</strong></label><br />
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+          <button id="severityBtn" onclick="selectEvaluationType('severity')" style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 6px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.2s ease;">Severity</button>
+          <button id="factualityBtn" onclick="selectEvaluationType('factuality')" style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 6px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.2s ease;">Factuality</button>
+        </div>
+      </div>
+      <button id="backButton" style="display: none" onclick="goBack()">
+        ⬅️ Back
+      </button>
       <div id="questions"></div>
       <div id="finalSection" style="display: none">
         <h3 id="finalResult"></h3>
         <button class="submit-btn" onclick="submitAnswer()">✅ Submit</button>
       </div>
+      <button id="factualitySubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitFactuality()">
+        ✅ Submit Factuality Evaluation
+      </button>
       <button id="restart" style="display: none" onclick="startFlow()">
         🔁 Restart
       </button>
     </div>
     <div class="wallpaper-controls">
-      <input type="text" class="wallpaper-input" placeholder="Paste image URL here" />
+      <input
+        type="text"
+        class="wallpaper-input"
+        placeholder="Paste image URL here"
+      />
       <div class="button-wrap">
         <div class="button-shadow"></div>
         <button class="wallpaper-btn" onclick="toggleWallpaperInput()">
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iZmVhdGhlciBmZWF0aGVyLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIj48L3BvbHlsaW5lPjwvc3ZnPg==" alt="Wallpaper" />
+          <img
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iZmVhdGhlciBmZWF0aGVyLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIj48L3BvbHlsaW5lPjwvc3ZnPg=="
+          />
         </button>
       </div>
     </div>
     <script>
       let finalAnswer = ""
       let questionHistory = []
+      let currentQuestionId = "q1"; // Keep track of the currently displayed question ID
+      let evaluationType = "" // Track the selected evaluation type
+
       const flow = [
-        {
-          id: "q1",
-          text: "Is there a claim(s) in the target statement?",
-          options: [
-            { label: "Yes", next: "q2" },
-            { label: "No", result: "✅ Mark \"Accurate\"" },
-          ],
-        },
-        {
-          id: "q2",
-          text: "Do you understand the claim(s) in the target statement?",
-          options: [
-            
-            {
-              label: "No - Formatting Issue",
-              result: '⚠️ Mark "Formatting Issue"',
-              info: `Use this when:\n\n• Disorganized structure makes it unreadable\n• Visual clutter or markdown/rendering errors block understanding\n• Sentence merges unrelated info without clear context`,
-            },
-            {
-              label: "No - Impossible to Assess",
-              result: '❓ Mark "Impossible to Assess"',
-              info: `Use this when:\n\n• Context is excessively ambiguous\n• Dynamic data or unavailable document/image\n• Paywalled or missing link required to assess the claim`,
-            },
-            { label: "Yes", next: "q3" },
-          ],
-        },
-        {
-          id: "q3",
-          text: "Is the target statement reasonable according to common sense?",
-          options: [
-            { label: "Yes", result: '✅ Mark "Accurate"' },
-            { label: "No", next: "q4" },
-          ],
-        },
-        {
-          id: "q4",
-          text: "Is there something that is not accurate?",
-          options: [
-            { label: "Yes", next: "q5" },
-            { label: "No", result: '✅ Mark "Accurate"' },
-          ],
-        },
-        {
-          id: "q5",
-          text: "Is it unsupported?",
-          options: [
-            { label: "Yes", next: "q6" },
-            { label: "No / I Don't Know", next: "q7" },
-          ],
-        },
-        {
-          id: "q6",
-          text: "Is it likely accurate based on your research (IE Sources outdated but all seem to agree and support the TS or many less than reputable sources seem to agree and support the TS)?",
-          options: [
-            {
-              label: "Yes",
-              result: "🟡 Low/Low+ Severity (depends on relation to intent)",
-            },
-            { label: "No", next: "q7" },
-          ],
-        },
-        {
-          id: "q7",
-          text: "Is it inaccurate or disputed?",
-          options: [
-            { label: "Yes", next: "q8" },
-            { label: "No", result: '✅ Mark "Accurate' },
-          ],
-        },
-        {
-          id: "q8",
-          text: "Does the claim(s) fall into primary intent or secondary intent?",
-          options: [
-            { label: "Primary Intent", next: "q9" },
-            { label: "Secondary Intent or Neither", next: "q13" },
-          ],
-        },
-        {
-          id: "q9",
-          text: 'Is it the direct answer to the users question (I.E. Claim says "Yes" when the answer is actually "No", etc)?',
-          options: [
-            { label: "Yes", result: "🔴 High Severity" },
-            { label: "No", next: "q10" },
-          ],
-        },
-        {
-          id: "q10",
-          text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or impact the user in a YMYL topic (Your Money Your Life)?",
-          options: [
-            { label: "Yes", result: "🔴 High Severity" },
-            { label: "No", next: "q11" },
-          ],
-        },
-        {
-          id: "q11",
-          text: "Does it mislead the user (would believing the information lead to user inconvenience or annoyance)?",
-          options: [
-            { label: "Yes", result: "🟠 Medium+ Severity" },
-            { label: "No", next: "q12" },
-          ],
-        },
-        {
-          id: "q12",
-          text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
-          options: [
-            { label: "Yes", result: "🟡 Low+ Severity" },
-            { label: "No", result: "🟠 Medium Severity" },
-          ],
-        },
-        {
-          id: "q13",
-          text: "Does it belong in the response (make sense for the topic of the query)?",
-          options: [
-            { label: "Yes", next: "q14" },
-            {
-              label: "No",
-              result: "🟡 Low Severity",
-              info: "Per Google, anything that is inaccurate but completely unrelated to the user's query should be low severity",
-            },
-          ],
-        },
-        {
-          id: "q14",
-          text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or does it impact the user in a YMYL topic (Your Money Your Life)?",
-          options: [
-            { label: "Yes", result: "🔴 High Severity" },
-            { label: "No", next: "q15" },
-          ],
-        },
-        {
-          id: "q15",
-          text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
-          options: [
-            { label: "Yes", result: "🟡 Low Severity" },
-            { label: "No", result: "🟡 Low+ Severity" },
-          ],
-        },
+      {
+      id: "q1",
+      text: "Is there a claim(s) in the target statement?",
+      options: [
+      { label: "Yes", next: "q2" },
+      { label: "No", result: "✅ Mark \"Accurate\"" },
+      ],
+      },
+      {
+      id: "q2",
+      text: "Do you understand the claim(s) in the target statement?",
+      options: [
+      {
+      label: "No - Formatting Issue",
+      result: '⚠️ Mark "Formatting Issue"',
+      info: `Use this when:\n\n• Disorganized structure makes it unreadable\n• Visual clutter or markdown/rendering errors block understanding\n• Sentence merges unrelated info without clear context`,
+      },
+      {
+      label: "No - Impossible to Assess",
+      result: '❓ Mark "Impossible to Assess"',
+      info: `Use this when:\n\n• Context is excessively ambiguous\n• Dynamic data or unavailable document/image\n• Paywalled or missing link required to assess the claim`,
+      },
+      { label: "Yes", next: "q3" },
+      ],
+      },
+      {
+      id: "q3",
+      text: "Is the target statement reasonable according to common sense (IE 'The sky is blue.', 'It's a good idea to brush your teeth.')?",
+      options: [
+      { label: "Yes", result: '✅ Mark \"Accurate\"' },
+      { label: "No", next: "q4" },
+      ],
+      },
+      {
+      id: "q4",
+      text: "Is there something that is not accurate?",
+      options: [
+      { label: "Yes", next: "q5" },
+      { label: "No", result: '✅ Mark \"Accurate\"' },
+      ],
+      },
+      {
+      id: "q5",
+      text: "Do you understand the user's query and their primary intent?",
+      options: [
+      { label: "Yes", next: "q6" },
+      { label: "No", result: '⁉ Mark \"Impossible to Assess\"' },
+      ],
+      },
+      {
+      id: "q6",
+      text: "Is it unsupported?",
+      options: [
+      { label: "Yes", next: "q7" },
+      { label: "No", next: "q8" },
+      ],
+      },
+      {
+      id: "q7",
+      text: "Is it likely accurate based on your research (IE Sources outdated but all seem to agree and support the TS or many less than reputable sources seem to agree and support the TS)?",
+      options: [
+      {
+      label: "Yes",
+      result: "🟡 Low/Low+ Severity (depends on relation to intent)",
+      },
+      { label: "No/I Don't Know", next: "q8" },
+      ],
+      },
+      {
+      id: "q8",
+      text: "Is it inaccurate/disputed/completely unsupported (no sources at all)?",
+      options: [
+      { label: "Yes", next: "q9" },
+      { label: "No", result: 'Seems like you may have given the wrong answer somewhere, please start over' },
+      ],
+      },
+      {
+      id: "q9",
+      text: "Does the claim(s) fall into primary intent or secondary intent?",
+      options: [
+      { label: "Primary Intent", next: "q16"},
+      { label: "Secondary Intent or Neither", next: "q13", },
+      ],
+      },
+      {
+      id: "q16",
+      text: "Is it the direct answer to the user's question (I.E. Claim says 'Yes' when the answer is actually 'No', etc)?",
+      options: [
+      { label: "Yes", result: "🔴 High Severity",},
+      { label: "No", next: 'q10' }
+      ],
+      },
+      {
+      id: "q10",
+      text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or does it impact the user in a YMYL topic (Your Money Your Life)?",
+      options: [
+      { label: "Yes", result: "🔴 High Severity" },
+      { label: "No", next: "q17" },
+      ],
+      },
+      {
+      id: "q11",
+      text: "Will the inaccuracy cause great inconvenience/a lot of annoyance? Would they be surprised about how untrue it was?",
+      options: [
+      { label: "Yes", result: "🟠 Medium+ Severity" },
+      { label: "No", next: "q12" },
+      ],
+      },
+      {
+      id: "q12",
+      text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
+      options: [
+      { label: "Yes", result: "🟡 Low+ Severity" },
+      { label: "No", result: "🟠 Medium Severity" },
+      ],
+      },
+      {
+      id: "q13",
+      text: "Does it belong in the response (make sense for the topic of the query)?",
+      options: [
+      { label: "Yes", next: "q20" },
+      {
+      label: "No",
+      result: "🟡 Low Severity",
+      info: "Per Google, anything that is inaccurate but completely unrelated to the user's query should be low severity",
+      },
+      ],
+      },
+      {
+      id: "q14",
+      text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or does it impact the user in a YMYL topic (Your Money Your Life)?",
+      options: [
+      { label: "Yes", result: "🔴 High Severity" },
+      { label: "No", next: "q15" },
+      ],
+      },
+      {
+      id: "q20",
+      text: "Could the information cause harm to the user, is the issue clear-cut/blatant (to the point of embarrassment for Google), or does it impact the user in a YMYL topic (Your Money Your Life)?",
+      options: [
+      { label: "Yes", result: "🔴 High Severity" },
+      { label: "No", next: "q18" },
+      ],
+      },
+      {
+      id: "q17",
+      text: "Does the claim contain hedging language/acknowledge model limitations that could lessen the severity of the inaccuracy?",
+      options: [
+      { label: "Yes", result: "🟡 Low Severity" },
+      { label: "No", next: "q11" },
+      ],
+      },
+      {
+      id: "q18",
+      text: "Does the claim contain hedging language/acknowledge model limitations that could lessen the severity of the inaccuracy?",
+      options: [
+      { label: "Yes", result: "🟡 Low Severity" },
+      { label: "No", next: "q19" },
+      ],
+      },
+      {
+      id: "q15",
+      text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
+      options: [
+      { label: "Yes", result: "🟡 Low Severity" },
+      { label: "No", result: "🟠 Medium Severity" },
+      ],
+      },
+      {
+      id: "q19",
+      text: "Is it a slight inaccuracy? (freshness, rounding, relative scale)",
+      options: [
+      { label: "Yes", result: "🟡 Low Severity" },
+      { label: "No", result: "🟡 Low+ Severity" },
+      ],
+      },
       ]
+
+      function selectEvaluationType(type) {
+      evaluationType = type
+      
+      // Update button styles
+      document.getElementById("severityBtn").style.backgroundColor = type === "severity" ? "#28a745" : "#f0f0f0"
+      document.getElementById("severityBtn").style.color = type === "severity" ? "white" : "#333"
+      document.getElementById("severityBtn").style.borderColor = type === "severity" ? "#28a745" : "#ddd"
+      
+      document.getElementById("factualityBtn").style.backgroundColor = type === "factuality" ? "#28a745" : "#f0f0f0"
+      document.getElementById("factualityBtn").style.color = type === "factuality" ? "white" : "#333"
+      document.getElementById("factualityBtn").style.borderColor = type === "factuality" ? "#28a745" : "#ddd"
+      
+      if (type === "severity") {
+      // Hide factuality submit button and show flow
+      document.getElementById("factualitySubmitBtn").style.display = "none"
+      startFlow()
+      } else if (type === "factuality") {
+      // Hide flow and show factuality submit button
+      document.getElementById("questions").innerHTML = ""
+      document.getElementById("restart").style.display = "none"
+      document.getElementById("finalSection").style.display = "none"
+      document.getElementById("backButton").style.display = "none"
+      document.getElementById("factualitySubmitBtn").style.display = "block"
+      }
+      }
+
       function startFlow() {
-        finalAnswer = ""
-        questionHistory = []
-        const container = document.getElementById("questions")
-        container.innerHTML = ""
-        document.getElementById("restart").style.display = "none"
-        document.getElementById("finalSection").style.display = "none"
-        document.getElementById("backButton").style.display = "none"
-        const showQuestion = (id) => {
-          container.innerHTML = ""
-          const q = flow.find((f) => f.id === id)
-          if (!q) return
-          const div = document.createElement("div")
-          div.className = "question active"
-          const h = document.createElement("h3")
-          h.textContent = q.text
-          div.appendChild(h)
-          if (q.options) {
-            const optionsContainer = document.createElement("div")
-            optionsContainer.className = "options-container"
-            q.options.forEach((opt) => {
-              const btn = document.createElement("button")
-              btn.textContent = opt.label
-              btn.onclick = () => {
-                if (opt.result) {
-                  finalAnswer = opt.result
-                  container.innerHTML = ""
-                  document.getElementById("finalResult").innerHTML =
-                    `<strong>Final Answer:</strong> ${finalAnswer}`
-                  document.getElementById("finalSection").style.display =
-                    "block"
-                  document.getElementById("restart").style.display = "block"
-                  document.getElementById("backButton").style.display = "none"
-                } else if (opt.next) {
-                  questionHistory.push(id)
-                  showQuestion(opt.next)
-                } else if (opt.restart) {
-                  startFlow()
-                }
-              }
-              optionsContainer.appendChild(btn)
-              if (opt.info) {
-                const infoDiv = document.createElement("div")
-                infoDiv.className = "info"
-                infoDiv.textContent = opt.info
-                optionsContainer.appendChild(infoDiv)
-              }
-            })
-            div.appendChild(optionsContainer)
-          }
-          container.appendChild(div)
-          document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none"
-        }
-        showQuestion("q1")
+      finalAnswer = ""
+      questionHistory = []
+      currentQuestionId = "q1"; // Reset current question
+      document.getElementById("questions").innerHTML = ""
+      document.getElementById("restart").style.display = "none"
+      document.getElementById("finalSection").style.display = "none"
+      document.getElementById("backButton").style.display = "none"
+      document.getElementById("factualitySubmitBtn").style.display = "none"
+      showQuestion("q1")
       }
+
+      // Save email to localStorage when it changes
+      function saveEmail() {
+      const email = document.getElementById("Email").value
+      localStorage.setItem("flowChartEmail", email)
+      }
+
+      // Load email from localStorage
+      function loadEmail() {
+      const savedEmail = localStorage.getItem("flowChartEmail")
+      if (savedEmail) {
+      document.getElementById("Email").value = savedEmail
+      }
+      }
+
+      function showQuestion(id) {
+      document.getElementById("questions").innerHTML = ""
+      document.getElementById("finalSection").style.display = "none" // Ensure result section is hidden
+      document.getElementById("restart").style.display = "none" // Ensure restart is hidden when showing question
+
+      currentQuestionId = id; // Update the current question ID
+
+      const q = flow.find((f) => f.id === id)
+      if (!q) return
+
+      const div = document.createElement("div")
+      div.className = "question active"
+      const h = document.createElement("h3")
+      h.textContent = q.text
+      div.appendChild(h)
+
+      const optionsContainer = document.createElement("div")
+      optionsContainer.className = "options-container"
+      q.options.forEach((opt) => {
+      const btn = document.createElement("button")
+      btn.textContent = opt.label
+      btn.onclick = () => {
+      if (opt.result) {
+
+      finalAnswer = opt.result
+      document.getElementById("questions").innerHTML = "" // Clear questions
+      document.getElementById("finalResult").innerHTML = `<strong>Final Answer:</strong> ${finalAnswer}`
+      document.getElementById("finalSection").style.display = "block"
+      document.getElementById("restart").style.display = "block"
+      document.getElementById("backButton").style.display = "block" // Show back button on result page
+
+      console.log(questionHistory, currentQuestionId)
+
+      // When a result is displayed, the current question (currentQuestionId) is the one
+      // we want to go back to if the user clicks 'Back' from the result.
+      // No need to push to history here as it was pushed when navigating TO this question.
+      } else if (opt.next) {
+
+      questionHistory.push(id) // Push current question to history BEFORE going to next
+      showQuestion(opt.next)
+      console.log(questionHistory, currentQuestionId)
+      } else if (opt.restart) {
+      startFlow()
+      }
+      }
+      optionsContainer.appendChild(btn)
+      if (opt.info) {
+      const infoDiv = document.createElement("div")
+      infoDiv.className = "info"
+      infoDiv.textContent = opt.info
+      optionsContainer.appendChild(infoDiv)
+      }
+      })
+      div.appendChild(optionsContainer)
+      document.getElementById("questions").appendChild(div)
+
+      // Update back button display after rendering the question
+      // The back button should be visible if there's history to go back to.
+      document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none";
+      }
+
       function submitAnswer() {
-        const taskId = document.getElementById("Task").value.trim()
-        if (!taskId) {
-          alert("⚠️ Please enter a Task before submitting.")
-          return
-        }
-        google.script.run
-          .withSuccessHandler(() => {
-            alert(`✅ Submitted!\nTask: ${taskId}\nAnswer: ${finalAnswer}`)
-          })
-          .withFailureHandler((err) => {
-            console.error("❌ Script Error:", err)
-            alert("❌ Submission failed.")
-          })
-          .submitLog(taskId, finalAnswer)
+      const taskId = document.getElementById("Task").value.trim()
+      const email = document.getElementById("Email").value.trim()
+      if (!taskId) {
+      alert("⚠️ Please enter a Task before submitting.")
+      return
       }
+      if (!email) {
+      alert("⚠️ Please enter an Email before submitting.")
+      return
+      }
+      google.script.run
+      .withSuccessHandler(() => {
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Severity\nAnswer: ${finalAnswer}`)
+      })
+      .withFailureHandler((err) => {
+      console.error("❌ Script Error:", err)
+      alert("❌ Submission failed.")
+      })
+      .submitLog(taskId, email, "Severity", finalAnswer)
+      }
+
+      function submitFactuality() {
+      const taskId = document.getElementById("Task").value.trim()
+      const email = document.getElementById("Email").value.trim()
+      if (!taskId) {
+      alert("⚠️ Please enter a Task before submitting.")
+      return
+      }
+      if (!email) {
+      alert("⚠️ Please enter an Email before submitting.")
+      return
+      }
+      if (!evaluationType) {
+      alert("⚠️ Please select an evaluation type.")
+      return
+      }
+      google.script.run
+      .withSuccessHandler(() => {
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Factuality`)
+      })
+      .withFailureHandler((err) => {
+      console.error("❌ Script Error:", err)
+      alert("❌ Submission failed.")
+      })
+      .submitLog(taskId, email, "Factuality", "Factuality Evaluation")
+      }
+
       function goBack() {
-        if (questionHistory.length > 0) {
-          const previousQuestion = questionHistory.pop()
-          const container = document.getElementById("questions")
-          container.innerHTML = ""
-          document.getElementById("finalSection").style.display = "none"
-          document.getElementById("restart").style.display = "none"
-          const showQuestion = (id) => {
-            container.innerHTML = ""
-            const q = flow.find((f) => f.id === id)
-            if (!q) return
-            const div = document.createElement("div")
-            div.className = "question active"
-            const h = document.createElement("h3")
-            h.textContent = q.text
-            div.appendChild(h)
-            if (q.options) {
-              q.options.forEach((opt) => {
-                const btn = document.createElement("button")
-                btn.textContent = opt.label
-                btn.onclick = () => {
-                  if (opt.result) {
-                    finalAnswer = opt.result
-                    container.innerHTML = ""
-                    document.getElementById("finalResult").innerHTML =
-                      `<strong>Final Answer:</strong> ${finalAnswer}`
-                    document.getElementById("finalSection").style.display =
-                      "block"
-                    document.getElementById("restart").style.display = "block"
-                    document.getElementById("backButton").style.display = "none"
-                  } else if (opt.next) {
-                    questionHistory.push(id)
-                    showQuestion(opt.next)
-                  } else if (opt.restart) {
-                    startFlow()
-                  }
-                }
-                div.appendChild(btn)
-                if (opt.info) {
-                  const infoDiv = document.createElement("div")
-                  infoDiv.className = "info"
-                  infoDiv.textContent = opt.info
-                  div.appendChild(infoDiv)
-                }
-              })
-            }
-            container.appendChild(div)
-            document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none"
-          }
-          showQuestion(previousQuestion)
-        }
+      if (document.getElementById("finalSection").style.display === "block") {
+      // If currently on a result page, we want to go back to the question that led to this result.
+      // This question ID is the `currentQuestionId` before the result was shown.
+      // We don't need to pop from history, just show the last question that was there.
+      document.getElementById("finalSection").style.display = "none"; // Hide the result section
+      document.getElementById("restart").style.display = "none"; // Hide restart button
+
+      // The current question (currentQuestionId) is the one that led to this result.
+      // We need to re-display it, and also ensure it's removed from history if it was a transition.
+      // However, if questionHistory is empty, it means q1 led to a result.
+      if (questionHistory.length > 0) {
+      showQuestion(currentQuestionId); // Pop the question that led to the result and show it
+      console.log(questionHistory, currentQuestionId)
+
+      } else {
+      // If history is empty, it means we got a result directly from q1.
+      // Go back to q1 (restart flow)
+      startFlow();
       }
+
+      } else if (questionHistory.length > 0) {
+      // If currently on a question page with history, go back one step.
+      const previousQuestionId = questionHistory.pop(); // Pop the previous question's ID
+      showQuestion(previousQuestionId); // Display that question
+      } else {
+      // If no history (e.g., on q1 and no previous), restart the flow
+      startFlow(); // This will effectively hide the back button if on q1
+      }
+      }
+
       function toggleWallpaperInput() {
-        const input = document.querySelector('.wallpaper-input');
-        const buttonWrap = document.querySelector('.button-wrap');
-        const isActive = input.classList.contains('active');
-        
-        if (!isActive) {
-          input.classList.add('active');
-          buttonWrap.classList.add('expanded');
-          setTimeout(() => input.focus(), 300);
-        } else {
-          input.classList.remove('active');
-          buttonWrap.classList.remove('expanded');
-        }
+      const input = document.querySelector('.wallpaper-input');
+      const buttonWrap = document.querySelector('.button-wrap');
+      const isActive = input.classList.contains('active');
+
+      if (!isActive) {
+      input.classList.add('active');
+      buttonWrap.classList.add('expanded');
+      setTimeout(() => input.focus(), 300);
+      } else {
+      input.classList.remove('active');
+      buttonWrap.classList.remove('expanded');
+      }
       }
 
       document.querySelector('.wallpaper-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          const url = this.value.trim();
-          if (url) {
-            document.body.style.backgroundImage = `url(${url})`;
-            this.value = '';
-            this.classList.remove('active');
-            document.querySelector('.button-wrap').classList.remove('expanded');
-          }
-        }
+      if (e.key === 'Enter') {
+      const url = this.value.trim();
+      if (url) {
+      document.body.style.backgroundImage = `url(${url})`;
+      this.value = '';
+      this.classList.remove('active');
+      document.querySelector('.button-wrap').classList.remove('expanded');
+      }
+      }
       });
 
       // Close input when clicking outside
       document.addEventListener('click', function(e) {
-        const input = document.querySelector('.wallpaper-input');
-        const button = document.querySelector('.wallpaper-btn');
-        if (!input.contains(e.target) && !button.contains(e.target) && input.classList.contains('active')) {
-          input.classList.remove('active');
-          document.querySelector('.button-wrap').classList.remove('expanded');
-        }
+      const input = document.querySelector('.wallpaper-input');
+      const button = document.querySelector('.wallpaper-btn');
+      if (!input.contains(e.target) && !button.contains(e.target) && input.classList.contains('active')) {
+      input.classList.remove('active');
+      document.querySelector('.button-wrap').classList.remove('expanded');
+      }
       });
 
-      window.onload = startFlow
+      // Add event listener to email field to save changes
+      document.addEventListener('DOMContentLoaded', function() {
+      const emailInput = document.getElementById("Email")
+      emailInput.addEventListener('input', saveEmail)
+      })
+
+      window.onload = function() {
+      loadEmail() // Load saved email first
+      // Don't automatically start flow - wait for user to select evaluation type
+      }
     </script>
   </body>
 </html>
