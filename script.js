@@ -3,13 +3,14 @@ function doGet() {
     form.setTitle("Severity Decision Flow")
     return form;
     }
-    function submitLog(Task, email, evaluationType, finalAnswer) {
+    function submitLog(Task, email, evaluationType, finalAnswer, timeSpent) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Logs");
     sheet.appendRow([
     new Date(),
     Task,
     email,
     evaluationType,
-    finalAnswer
+    finalAnswer,
+    timeSpent
     ]);
     }

@@ -331,6 +331,9 @@
       <button id="factualitySubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitFactuality()">
         ✅ Submit Factuality Evaluation
       </button>
+      <button id="severitySubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitSeverity()">
+        ✅ Submit Severity Evaluation
+      </button>
       <button id="restart" style="display: none" onclick="startFlow()">
         🔁 Restart
       </button>
@@ -355,6 +358,8 @@
       let questionHistory = []
       let currentQuestionId = "q1"; // Keep track of the currently displayed question ID
       let evaluationType = "" // Track the selected evaluation type
+      let startTime = null // Track when the task started
+      let totalTimeSpent = 0 // Track total time spent in milliseconds
 
       const flow = [
       {
@@ -535,6 +540,26 @@
       },
       ]
 
+      function startTimer() {
+      startTime = Date.now()
+      totalTimeSpent = 0
+      }
+
+      function stopTimer() {
+      if (startTime) {
+      totalTimeSpent = Date.now() - startTime
+      return totalTimeSpent
+      }
+      return 0
+      }
+
+      function formatTime(milliseconds) {
+      const seconds = Math.floor(milliseconds / 1000)
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = seconds % 60
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+      }
+
       function selectEvaluationType(type) {
       evaluationType = type
       
@@ -548,16 +573,19 @@
       document.getElementById("factualityBtn").style.borderColor = type === "factuality" ? "#28a745" : "#ddd"
       
       if (type === "severity") {
-      // Hide factuality submit button and show flow
+      // Hide factuality submit button and start the severity flow
       document.getElementById("factualitySubmitBtn").style.display = "none"
-      startFlow()
+      document.getElementById("severitySubmitBtn").style.display = "none"
+      startFlow() // Start the flow for severity evaluation
       } else if (type === "factuality") {
-      // Hide flow and show factuality submit button
+      // Hide severity submit button and show factuality submit button
+      document.getElementById("severitySubmitBtn").style.display = "none"
+      document.getElementById("factualitySubmitBtn").style.display = "block"
       document.getElementById("questions").innerHTML = ""
       document.getElementById("restart").style.display = "none"
       document.getElementById("finalSection").style.display = "none"
       document.getElementById("backButton").style.display = "none"
-      document.getElementById("factualitySubmitBtn").style.display = "block"
+      startTimer() // Start timer for factuality evaluation
       }
       }
 
@@ -570,6 +598,8 @@
       document.getElementById("finalSection").style.display = "none"
       document.getElementById("backButton").style.display = "none"
       document.getElementById("factualitySubmitBtn").style.display = "none"
+      document.getElementById("severitySubmitBtn").style.display = "none"
+      startTimer() // Start the timer when flow begins
       showQuestion("q1")
       }
 
@@ -613,10 +643,17 @@
 
       finalAnswer = opt.result
       document.getElementById("questions").innerHTML = "" // Clear questions
+      
+      // Show severity submit button instead of final section for severity evaluations
+      if (evaluationType === "severity") {
+      document.getElementById("severitySubmitBtn").style.display = "block"
+      document.getElementById("restart").style.display = "block"
+      } else {
       document.getElementById("finalResult").innerHTML = `<strong>Final Answer:</strong> ${finalAnswer}`
       document.getElementById("finalSection").style.display = "block"
       document.getElementById("restart").style.display = "block"
       document.getElementById("backButton").style.display = "block" // Show back button on result page
+      }
 
       console.log(questionHistory, currentQuestionId)
 
@@ -648,6 +685,33 @@
       document.getElementById("backButton").style.display = questionHistory.length > 0 ? "block" : "none";
       }
 
+      function submitSeverity() {
+      const taskId = document.getElementById("Task").value.trim()
+      const email = document.getElementById("Email").value.trim()
+      if (!taskId) {
+      alert("⚠️ Please enter a Task before submitting.")
+      return
+      }
+      if (!email) {
+      alert("⚠️ Please enter an Email before submitting.")
+      return
+      }
+      const timeSpent = stopTimer()
+      const formattedTime = formatTime(timeSpent)
+      google.script.run
+      .withSuccessHandler(() => {
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Severity\nTime Spent: ${formattedTime}\nAnswer: ${finalAnswer}`)
+      // Hide submit button and show restart button
+      document.getElementById("severitySubmitBtn").style.display = "none"
+      document.getElementById("restart").style.display = "block"
+      })
+      .withFailureHandler((err) => {
+      console.error("❌ Script Error:", err)
+      alert("❌ Submission failed.")
+      })
+      .submitLog(taskId, email, "Severity", finalAnswer, formattedTime)
+      }
+
       function submitAnswer() {
       const taskId = document.getElementById("Task").value.trim()
       const email = document.getElementById("Email").value.trim()
@@ -659,15 +723,17 @@
       alert("⚠️ Please enter an Email before submitting.")
       return
       }
+      const timeSpent = stopTimer()
+      const formattedTime = formatTime(timeSpent)
       google.script.run
       .withSuccessHandler(() => {
-      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Severity\nAnswer: ${finalAnswer}`)
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Severity\nTime Spent: ${formattedTime}\nAnswer: ${finalAnswer}`)
       })
       .withFailureHandler((err) => {
       console.error("❌ Script Error:", err)
       alert("❌ Submission failed.")
       })
-      .submitLog(taskId, email, "Severity", finalAnswer)
+      .submitLog(taskId, email, "Severity", finalAnswer, formattedTime)
       }
 
       function submitFactuality() {
@@ -685,15 +751,20 @@
       alert("⚠️ Please select an evaluation type.")
       return
       }
+      const timeSpent = stopTimer()
+      const formattedTime = formatTime(timeSpent)
       google.script.run
       .withSuccessHandler(() => {
-      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Factuality`)
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Factuality\nTime Spent: ${formattedTime}`)
+      // Hide submit button and show restart button
+      document.getElementById("factualitySubmitBtn").style.display = "none"
+      document.getElementById("restart").style.display = "block"
       })
       .withFailureHandler((err) => {
       console.error("❌ Script Error:", err)
       alert("❌ Submission failed.")
       })
-      .submitLog(taskId, email, "Factuality", "Factuality Evaluation")
+      .submitLog(taskId, email, "Factuality", "Factuality Evaluation", formattedTime)
       }
 
       function goBack() {
