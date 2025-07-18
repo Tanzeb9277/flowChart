@@ -318,6 +318,7 @@
         <div style="display: flex; gap: 10px; margin-top: 5px;">
           <button id="severityBtn" onclick="selectEvaluationType('severity')" style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 6px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.2s ease;">Severity</button>
           <button id="factualityBtn" onclick="selectEvaluationType('factuality')" style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 6px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.2s ease;">Factuality</button>
+          <button id="releaseBtn" onclick="selectEvaluationType('release')" style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 6px; background-color: #f0f0f0; color: #333; cursor: pointer; transition: all 0.2s ease;">Release</button>
         </div>
       </div>
       <button id="backButton" style="display: none" onclick="goBack()">
@@ -326,13 +327,16 @@
       <div id="questions"></div>
       <div id="finalSection" style="display: none">
         <h3 id="finalResult"></h3>
-        <button class="submit-btn" onclick="submitAnswer()">✅ Submit</button>
+        <button class="submit-btn" id="originalSubmitBtn" onclick="submitAnswer()">✅ Submit</button>
       </div>
       <button id="factualitySubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitFactuality()">
         ✅ Submit Factuality Evaluation
       </button>
       <button id="severitySubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitSeverity()">
         ✅ Submit Severity Evaluation
+      </button>
+      <button id="releaseSubmitBtn" style="display: none; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; margin: 20px 0;" onclick="submitRelease()">
+        ✅ Submit Release Evaluation
       </button>
       <button id="restart" style="display: none" onclick="startFlow()">
         🔁 Restart
@@ -560,7 +564,50 @@
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
       }
 
+      function disableEvaluationTypeButtons() {
+      document.getElementById("severityBtn").disabled = true
+      document.getElementById("severityBtn").style.opacity = "0.5"
+      document.getElementById("severityBtn").style.cursor = "not-allowed"
+      
+      document.getElementById("factualityBtn").disabled = true
+      document.getElementById("factualityBtn").style.opacity = "0.5"
+      document.getElementById("factualityBtn").style.cursor = "not-allowed"
+      
+      document.getElementById("releaseBtn").disabled = true
+      document.getElementById("releaseBtn").style.opacity = "0.5"
+      document.getElementById("releaseBtn").style.cursor = "not-allowed"
+      
+      // Also disable back button
+      document.getElementById("backButton").disabled = true
+      document.getElementById("backButton").style.opacity = "0.5"
+      document.getElementById("backButton").style.cursor = "not-allowed"
+      }
+
+      function enableEvaluationTypeButtons() {
+      document.getElementById("severityBtn").disabled = false
+      document.getElementById("severityBtn").style.opacity = "1"
+      document.getElementById("severityBtn").style.cursor = "pointer"
+      
+      document.getElementById("factualityBtn").disabled = false
+      document.getElementById("factualityBtn").style.opacity = "1"
+      document.getElementById("factualityBtn").style.cursor = "pointer"
+      
+      document.getElementById("releaseBtn").disabled = false
+      document.getElementById("releaseBtn").style.opacity = "1"
+      document.getElementById("releaseBtn").style.cursor = "pointer"
+      
+      // Also enable back button
+      document.getElementById("backButton").disabled = false
+      document.getElementById("backButton").style.opacity = "1"
+      document.getElementById("backButton").style.cursor = "pointer"
+      }
+
       function selectEvaluationType(type) {
+      // Prevent selection if buttons are disabled
+      if (document.getElementById("severityBtn").disabled) {
+      return
+      }
+      
       evaluationType = type
       
       // Update button styles
@@ -572,20 +619,36 @@
       document.getElementById("factualityBtn").style.color = type === "factuality" ? "white" : "#333"
       document.getElementById("factualityBtn").style.borderColor = type === "factuality" ? "#28a745" : "#ddd"
       
+      document.getElementById("releaseBtn").style.backgroundColor = type === "release" ? "#28a745" : "#f0f0f0"
+      document.getElementById("releaseBtn").style.color = type === "release" ? "white" : "#333"
+      document.getElementById("releaseBtn").style.borderColor = type === "release" ? "#28a745" : "#ddd"
+      
       if (type === "severity") {
-      // Hide factuality submit button and start the severity flow
+      // Hide other submit buttons and start the severity flow
       document.getElementById("factualitySubmitBtn").style.display = "none"
+      document.getElementById("releaseSubmitBtn").style.display = "none"
       document.getElementById("severitySubmitBtn").style.display = "none"
       startFlow() // Start the flow for severity evaluation
       } else if (type === "factuality") {
-      // Hide severity submit button and show factuality submit button
+      // Hide other submit buttons and show factuality submit button
       document.getElementById("severitySubmitBtn").style.display = "none"
+      document.getElementById("releaseSubmitBtn").style.display = "none"
       document.getElementById("factualitySubmitBtn").style.display = "block"
       document.getElementById("questions").innerHTML = ""
       document.getElementById("restart").style.display = "none"
       document.getElementById("finalSection").style.display = "none"
       document.getElementById("backButton").style.display = "none"
       startTimer() // Start timer for factuality evaluation
+      } else if (type === "release") {
+      // Hide other submit buttons and show release submit button
+      document.getElementById("severitySubmitBtn").style.display = "none"
+      document.getElementById("factualitySubmitBtn").style.display = "none"
+      document.getElementById("releaseSubmitBtn").style.display = "block"
+      document.getElementById("questions").innerHTML = ""
+      document.getElementById("restart").style.display = "none"
+      document.getElementById("finalSection").style.display = "none"
+      document.getElementById("backButton").style.display = "none"
+      startTimer() // Start timer for release evaluation
       }
       }
 
@@ -599,6 +662,8 @@
       document.getElementById("backButton").style.display = "none"
       document.getElementById("factualitySubmitBtn").style.display = "none"
       document.getElementById("severitySubmitBtn").style.display = "none"
+      document.getElementById("releaseSubmitBtn").style.display = "none"
+      enableEvaluationTypeButtons() // Re-enable evaluation type buttons
       startTimer() // Start the timer when flow begins
       showQuestion("q1")
       }
@@ -644,13 +709,18 @@
       finalAnswer = opt.result
       document.getElementById("questions").innerHTML = "" // Clear questions
       
-      // Show severity submit button instead of final section for severity evaluations
+      // Show result and submit button for severity evaluations
       if (evaluationType === "severity") {
+      document.getElementById("finalResult").innerHTML = `<strong>Final Answer:</strong> ${finalAnswer}`
+      document.getElementById("finalSection").style.display = "block"
+      document.getElementById("originalSubmitBtn").style.display = "none" // Hide original submit button
       document.getElementById("severitySubmitBtn").style.display = "block"
       document.getElementById("restart").style.display = "block"
+      document.getElementById("backButton").style.display = "block" // Show back button on result page
       } else {
       document.getElementById("finalResult").innerHTML = `<strong>Final Answer:</strong> ${finalAnswer}`
       document.getElementById("finalSection").style.display = "block"
+      document.getElementById("originalSubmitBtn").style.display = "block" // Show original submit button
       document.getElementById("restart").style.display = "block"
       document.getElementById("backButton").style.display = "block" // Show back button on result page
       }
@@ -704,6 +774,8 @@
       // Hide submit button and show restart button
       document.getElementById("severitySubmitBtn").style.display = "none"
       document.getElementById("restart").style.display = "block"
+      // Disable evaluation type buttons
+      disableEvaluationTypeButtons()
       })
       .withFailureHandler((err) => {
       console.error("❌ Script Error:", err)
@@ -759,6 +831,8 @@
       // Hide submit button and show restart button
       document.getElementById("factualitySubmitBtn").style.display = "none"
       document.getElementById("restart").style.display = "block"
+      // Disable evaluation type buttons
+      disableEvaluationTypeButtons()
       })
       .withFailureHandler((err) => {
       console.error("❌ Script Error:", err)
@@ -767,13 +841,52 @@
       .submitLog(taskId, email, "Factuality", "Factuality Evaluation", formattedTime)
       }
 
+      function submitRelease() {
+      const taskId = document.getElementById("Task").value.trim()
+      const email = document.getElementById("Email").value.trim()
+      if (!taskId) {
+      alert("⚠️ Please enter a Task before submitting.")
+      return
+      }
+      if (!email) {
+      alert("⚠️ Please enter an Email before submitting.")
+      return
+      }
+      if (!evaluationType) {
+      alert("⚠️ Please select an evaluation type.")
+      return
+      }
+      const timeSpent = stopTimer()
+      const formattedTime = formatTime(timeSpent)
+      google.script.run
+      .withSuccessHandler(() => {
+      alert(`✅ Submitted!\nTask: ${taskId}\nEmail: ${email}\nType: Release\nTime Spent: ${formattedTime}`)
+      // Hide submit button and show restart button
+      document.getElementById("releaseSubmitBtn").style.display = "none"
+      document.getElementById("restart").style.display = "block"
+      // Disable evaluation type buttons
+      disableEvaluationTypeButtons()
+      })
+      .withFailureHandler((err) => {
+      console.error("❌ Script Error:", err)
+      alert("❌ Submission failed.")
+      })
+      .submitLog(taskId, email, "Release", "Release Evaluation", formattedTime)
+      }
+
       function goBack() {
+      // Prevent back button from working if it's disabled
+      if (document.getElementById("backButton").disabled) {
+      return
+      }
+      
       if (document.getElementById("finalSection").style.display === "block") {
       // If currently on a result page, we want to go back to the question that led to this result.
       // This question ID is the `currentQuestionId` before the result was shown.
       // We don't need to pop from history, just show the last question that was there.
       document.getElementById("finalSection").style.display = "none"; // Hide the result section
       document.getElementById("restart").style.display = "none"; // Hide restart button
+      document.getElementById("severitySubmitBtn").style.display = "none"; // Hide submit button
 
       // The current question (currentQuestionId) is the one that led to this result.
       // We need to re-display it, and also ensure it's removed from history if it was a transition.
